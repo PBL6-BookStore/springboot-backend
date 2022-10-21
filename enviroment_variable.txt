@@ -1,0 +1,1 @@
+DEV_DB_HOST=pbl6bookstore.ddns.net;DEV_DB_NAME=pbl6_bookstore;DEV_DB_PASS=PBL6BookStore@;DEV_DB_PORT=3306;DEV_DB_USER=pbl6bookstore;LOCAL_DB_NAME=pbl6_bookstore;LOCAL_DB_PASS=Dakhung0801@;LOCAL_DB_PORT=3306;LOCAL_DB_USER=root

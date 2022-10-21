@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * @author lkadai0801
@@ -23,9 +24,28 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username")
-    private String username;
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
 
-    @Column(name = "password")
-    private String password;
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "avatar")
+    private String avatar;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private AccountEntity account;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", referencedColumnName = "id")
+    private CartEntity cart;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private List<ChatEntity> chats;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private List<OrderEntity> orders;
 }
