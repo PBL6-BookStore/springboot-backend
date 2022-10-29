@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -125,6 +126,21 @@ public class CommonExceptionHandlingController extends ResponseEntityExceptionHa
                 .setErrors(errors)
                 .build();
         return ResponseEntity.status(status).body(error);
+    }
+    @ExceptionHandler(RuntimeException.class)
+    protected ResponseEntity<Object> handleRuntimeException(RuntimeException exception) {
+        log.warn("RuntimeException was risen and caught.");
+        log.warn("Exception: {} - {}", exception.getClass().getSimpleName(), exception.getMessage());
+        log.warn(exception.getMessage());
+        exception.printStackTrace();
+        Response<?> error = Response.newBuilder()
+                .setSuccess(false)
+                .setMessage(exception.getMessage())
+                .setErrorCode(ErrorCode.INTERNAL_ERROR)
+                .setException(exception.getClass().getSimpleName())
+                .build();
+
+        return ResponseEntity.status(500).body(error);
     }
 
     @Override
