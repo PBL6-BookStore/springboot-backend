@@ -1,6 +1,7 @@
 package com.pbl6.bookstore.controller;
 
 import com.pbl6.bookstore.common.enums.ErrorCode;
+import com.pbl6.bookstore.exception.ValidateException;
 import com.pbl6.bookstore.payload.response.ErrorDTO;
 import com.pbl6.bookstore.payload.response.Response;
 import lombok.extern.log4j.Log4j2;
@@ -94,6 +95,21 @@ public class CommonExceptionHandlingController extends ResponseEntityExceptionHa
                 .build();
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ValidateException.class)
+    protected ResponseEntity<Object> handleValidateException(ValidateException exception){
+        log.warn("MethodArgumentNotValidException was risen and caught");
+        log.warn("Exception: {} - {}", exception.getClass().getSimpleName(), exception.getMessage());
+
+        var res = Response.newBuilder()
+                .setSuccess(false)
+                .setException(exception.getClass().getSimpleName())
+                .setErrorCode(ErrorCode.VALIDATE_FAILURE)
+                .setErrors(exception.getErrors())
+                .setMessage(exception.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
     @Override
