@@ -14,7 +14,7 @@ public class ObjectNotFoundException extends BookStoreException{
         super(true);
         this.key = key;
         this.value = value;
-        this.message =  String.format("Object not found with value = %s", value);
+        this.message =  String.format("Object not found with value %s = %s", key, value);
     }
 
     public ObjectNotFoundException(Class<?> objectClass, String key, String value){

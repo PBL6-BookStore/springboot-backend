@@ -1,4 +1,4 @@
-package com.pbl6.bookstore.domain.repository;
+package com.pbl6.bookstore.domain.repository.jpa;
 
 import com.pbl6.bookstore.domain.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

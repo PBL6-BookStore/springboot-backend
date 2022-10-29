@@ -10,5 +10,13 @@ public enum ErrorCode {
     REQUIRED_FIELD_MISSING,
     BAD_REQUEST,
     INTERNAL_ERROR,
-    NOT_FOUND
+    NOT_FOUND,
+    
+    
+    // Internal
+    
+    RESOURCE_NOT_FOUND,
+    NOT_EMPTY,
+    DATE_FORMAT_INVALID,
+    VALIDATE_FAILURE,
 }

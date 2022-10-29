@@ -1,6 +1,8 @@
 package com.pbl6.bookstore.controller;
 
+import com.pbl6.bookstore.payload.request.BookRequest;
 import com.pbl6.bookstore.payload.request.ListBookRequest;
+import com.pbl6.bookstore.payload.response.OnlyIdDTO;
 import com.pbl6.bookstore.payload.response.PageDTO;
 import com.pbl6.bookstore.payload.response.Response;
 import com.pbl6.bookstore.payload.response.book.BookDTO;
@@ -12,10 +14,9 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * @author lkadai0801
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Book", description = "Book APIs")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/book")
+@RequestMapping("/books")
 public class BookController {
     private final BookService bookService;
 
@@ -44,11 +45,21 @@ public class BookController {
             schema = @Schema(allowableValues = {"true", "false"}))
     })
     @GetMapping
-    private Response<PageDTO<BookDTO>> listBook(@ModelAttribute ListBookRequest request){
+    public Response<PageDTO<BookDTO>> listBook(@ModelAttribute ListBookRequest request){
         var listBook = bookService.listBook(request);
-        return Response.<PageDTO<BookDTO>>newBuilder()
-                .setSuccess(true)
-                .setData(listBook)
-                .build();
+        return bookService.listBook(request);
+    }
+
+    @Operation(summary = "Find Book by id", description = "Find book by id")
+    @GetMapping("/{bookId}")
+    public Response<BookDTO> getBookById(@PathVariable("bookId") Long bookId){
+        var bookRes = bookService.findBookById(bookId);
+        return bookService.findBookById(bookId);
+    }
+
+    @Operation(summary = "Add new Book", description = "Add new Book")
+    @PostMapping
+    public Response<OnlyIdDTO> addBook(@RequestBody BookRequest request){
+        return bookService.addNewBook(request);
     }
 }
