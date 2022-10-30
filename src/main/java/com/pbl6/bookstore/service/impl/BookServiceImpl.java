@@ -1,5 +1,6 @@
 package com.pbl6.bookstore.service.impl;
 
+import com.pbl6.bookstore.common.constant.Constant;
 import com.pbl6.bookstore.common.enums.ErrorCode;
 import com.pbl6.bookstore.domain.entity.BookEntity;
 import com.pbl6.bookstore.domain.repository.dsl.BookDslRepository;
@@ -18,16 +19,23 @@ import com.pbl6.bookstore.service.BookService;
 import static com.pbl6.bookstore.util.RequestUtils.*;
 
 import com.pbl6.bookstore.service.converter.BookMapper;
+import com.pbl6.bookstore.util.FileUploadUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +55,7 @@ public class BookServiceImpl implements BookService {
 
     private final String pattern = "dd-MM-yyyy";
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+
     @Override
     public Response<PageDTO<BookDTO>> listBook(ListBookRequest request) {
         var listBookResponse = bookDslRepository.getListBook(request);
@@ -79,6 +88,112 @@ public class BookServiceImpl implements BookService {
 
         // validate
         List<ErrorDTO> errors = new ArrayList<>();
+        Timestamp date = null;
+
+        validateBook(errors, request);
+
+
+        // end validate
+        if (!errors.isEmpty()){
+            throw new ValidateException(errors);
+        }
+
+        if (StringUtils.hasText(request.getPublicationDate())){
+            try {
+                date = new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+            } catch (ParseException e){
+                log.error("date format");
+            }
+        }
+
+        BookEntity book = new BookEntity();
+        setBookField(book, request, date);
+
+        var bookSaved = bookRepository.save(book);
+        return Response.<OnlyIdDTO>newBuilder()
+                .setSuccess(true)
+                .setData(OnlyIdDTO.builder()
+                        .id(bookSaved.getId())
+                        .build())
+                .build();
+
+    }
+
+    @Override
+    @Transactional
+    public Response<OnlyIdDTO> updateImage(Long bookId, MultipartFile image) throws IOException {
+        var book = bookRepository.findById(bookId).orElseThrow(() ->
+                new ObjectNotFoundException("bookId", bookId));
+        if (!StringUtils.hasText(image.getOriginalFilename())){
+            return Response.<OnlyIdDTO>newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Bad request")
+                    .setErrorCode(ErrorCode.REQUIRED_FIELD_MISSING)
+                    .setErrors(List.of(ErrorDTO.of("image", ErrorCode.REQUIRED_FIELD_MISSING)))
+                    .build();
+        }
+        String fileName1 = StringUtils.cleanPath(image.getOriginalFilename());
+        String fileName = UUID.randomUUID().toString().replaceAll("-", "") + fileName1.substring(fileName1.lastIndexOf("."));
+        book.setImage(Constant.staticImageUri + book.getId() + "/" + fileName);
+        String uploadDir = Constant.staticUri + Constant.staticImageUri + book.getId();
+        FileUploadUtil.saveFile(uploadDir, fileName, image);
+        bookRepository.save(book);
+        return Response.<OnlyIdDTO>newBuilder()
+                .setSuccess(true)
+                .setData(OnlyIdDTO.builder()
+                        .id(bookId)
+                        .build())
+                .build();
+    }
+
+    @Override
+    public Response<OnlyIdDTO> updateBook(Long bookId, BookRequest request) {
+        var book = bookRepository.findById(bookId).orElseThrow(() ->
+                new ObjectNotFoundException("bookId", bookId));
+        
+        List<ErrorDTO> errors = new ArrayList<>();
+        Timestamp date = null;
+        
+        validateBook(errors, request);
+
+        if (!errors.isEmpty()){
+            throw new ValidateException(errors);
+        }
+
+        if (StringUtils.hasText(request.getPublicationDate())){
+            try {
+                date = new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+            } catch (ParseException e){
+                log.error("date format");
+            }
+        }
+
+        setBookField(book, request, date);
+
+        var bookSaved = bookRepository.save(book);
+        return Response.<OnlyIdDTO>newBuilder()
+                .setSuccess(true)
+                .setData(OnlyIdDTO.builder()
+                        .id(bookSaved.getId())
+                        .build())
+                .build();
+    }
+
+    @Override
+    public Response<OnlyIdDTO> deleteBook(Long bookId) {
+        var book = bookRepository.findById(bookId).orElseThrow(() ->
+                new ObjectNotFoundException("bookId", bookId));
+        bookRepository.delete(book);
+        return Response.<OnlyIdDTO>newBuilder()
+                .setSuccess(true)
+                .setData(OnlyIdDTO.builder()
+                        .id(bookId)
+                        .build())
+                .build();
+    }
+
+    private void validateBook(List<ErrorDTO> errors, BookRequest request){
+        // validate
 
         if (request.getCategoryId() == null){
             errors.add(ErrorDTO.of("categoryId", ErrorCode.REQUIRED_FIELD_MISSING));
@@ -96,41 +211,29 @@ public class BookServiceImpl implements BookService {
             errors.add(ErrorDTO.of("title", ErrorCode.NOT_EMPTY));
         }
 
-        Timestamp date = null;
         if (StringUtils.hasText(request.getPublicationDate())){
             try {
-                date = new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+                new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
             } catch (ParseException e) {
                 log.warn("Date format invalid {}", request.getPublicationDate());
                 errors.add(ErrorDTO.of("publicationDate", ErrorCode.DATE_FORMAT_INVALID));
             }
         }
-
         // end validate
-
-        if (!errors.isEmpty()){
-            throw new ValidateException(errors);
-        }
-
-        BookEntity newBook = new BookEntity();
-        newBook.setTitle(request.getTitle());
-        newBook.setAuthor(request.getAuthor());
-        newBook.setEdition(request.getEdition());
-        newBook.setPublicationDate(date);
-        newBook.setSize(request.getSize());
-        newBook.setDescription(request.getDescription());
-        newBook.setPages(request.getPages());
-        newBook.setPrice(request.getPrice());
-        newBook.setWeight(request.getWeight());
-        newBook.setPublisher(request.getPublisher());
-
-        var bookSaved = bookRepository.save(newBook);
-        return Response.<OnlyIdDTO>newBuilder()
-                .setSuccess(true)
-                .setData(OnlyIdDTO.builder()
-                        .id(bookSaved.getId())
-                        .build())
-                .build();
-
     }
+
+    private BookEntity setBookField(BookEntity book, BookRequest request, Timestamp date){
+        book.setTitle(request.getTitle());
+        book.setAuthor(request.getAuthor());
+        book.setEdition(request.getEdition());
+        book.setPublicationDate(date);
+        book.setSize(request.getSize());
+        book.setDescription(request.getDescription());
+        book.setPages(request.getPages());
+        book.setPrice(request.getPrice());
+        book.setWeight(request.getWeight());
+        book.setPublisher(request.getPublisher());
+        return book;
+    }
+
 }

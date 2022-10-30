@@ -16,7 +16,8 @@ public class BookMapper {
     private static final String pattern = "dd-MM-yyyy";
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     public static BookDTO map(BookEntity book){
-        return BookDTO.newBuilder()
+
+        var bookBuilder =  BookDTO.newBuilder()
                 .setAuthor(blankIfNull(book.getAuthor()))
                 .setPrice(book.getPrice())
                 .setImage(blankIfNull(book.getImage()))
@@ -24,8 +25,10 @@ public class BookMapper {
                 .setId(book.getId())
                 .setPublisher(book.getPublisher())
                 .setEdition(defaultIfNull(book.getEdition(), 0))
-                .setPublicationDate(simpleDateFormat.format(book.getPublicationDate()))
-                .setDescription(blankIfNull(book.getDescription()))
-                .build();
+                .setDescription(blankIfNull(book.getDescription()));
+        if (book.getPublicationDate() != null){
+            bookBuilder.setPublicationDate(simpleDateFormat.format(book.getPublicationDate()));
+        }
+        return bookBuilder.build();
     }
 }
