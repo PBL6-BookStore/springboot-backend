@@ -15,8 +15,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
 
 /**
  * @author lkadai0801
@@ -61,5 +64,25 @@ public class BookController {
     @PostMapping
     public Response<OnlyIdDTO> addBook(@RequestBody BookRequest request){
         return bookService.addNewBook(request);
+    }
+
+    @Operation(summary = "Update image for book")
+    @Parameter(in = ParameterIn.QUERY, name = "image", description = "upload image for book", example = "book.png")
+    @PutMapping("/images/{bookId}")
+    public Response<OnlyIdDTO> updateImage(@PathVariable("bookId") Long bookId, @RequestParam(value = "image", required = true) @NotNull MultipartFile image) throws IOException {
+        return bookService.updateImage(bookId, image);
+    }
+
+    @Operation(summary = "Update book", description = "Update book with id")
+    @PutMapping("/{bookId}")
+    public Response<OnlyIdDTO> updateBook(@PathVariable("bookId") Long bookId, @RequestBody BookRequest bookRequest){
+        return bookService.updateBook(bookId, bookRequest);
+    }
+
+
+    @Operation(summary = "Delete book", description = "Delete book with id")
+    @DeleteMapping("/{bookId}")
+    public Response<OnlyIdDTO> deleteBook(@PathVariable("bookId") Long bookId){
+        return bookService.deleteBook(bookId);
     }
 }
