@@ -11,6 +11,8 @@ public enum ErrorCode {
     BAD_REQUEST,
     INTERNAL_ERROR,
     NOT_FOUND,
+
+    NOT_NULL,
     
     
     // Internal

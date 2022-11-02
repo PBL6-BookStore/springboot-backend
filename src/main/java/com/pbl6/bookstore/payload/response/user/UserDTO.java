@@ -1,4 +1,4 @@
-package com.pbl6.bookstore.payload.request;
+package com.pbl6.bookstore.payload.response.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,11 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * @author lkadai0801
- * @since 30/09/2022
+ * @since 02/11/2022
  */
 
 @Getter
@@ -18,9 +16,8 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder(builderMethodName = "newBuilder", setterPrefix = "set")
-public class UserRequest {
-    @NotNull
+public class UserDTO {
+    private String username;
     private String email;
-    @NotNull
     private String password;
 }
