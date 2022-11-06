@@ -29,8 +29,8 @@ public class AccountEntity {
     @Size(min = 4, max = 50)
     private String email;
 
-    @Column(name = "password", nullable = false, length = 30)
-    @Size(min = 4, max = 50)
+    // Password sau khi encode có độ dài lớn hơn 40, nên đã bỏ điều kiện length, size
+    @Column(name = "password", nullable = false)
     private String password;
 
     @ManyToMany(fetch = FetchType.LAZY)
