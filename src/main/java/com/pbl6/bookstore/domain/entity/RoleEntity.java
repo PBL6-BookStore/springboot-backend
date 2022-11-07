@@ -26,4 +26,9 @@ public class RoleEntity {
     private String role;
 
     private String description;
+
+    public RoleEntity(String role, String description) {
+        this.role = role;
+        this.description = description;
+    }
 }

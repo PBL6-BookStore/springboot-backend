@@ -10,6 +10,7 @@ import com.pbl6.bookstore.payload.response.OnlyIdDTO;
 import com.pbl6.bookstore.payload.response.Response;
 import com.pbl6.bookstore.payload.response.book.BookDTO;
 import com.pbl6.bookstore.payload.response.cart.ListCartDetailDTO;
+import com.pbl6.bookstore.domain.entity.CartEntity;
 import com.pbl6.bookstore.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,18 @@ public class CartServiceImpl implements CartService {
                                         .setId(c.getId())
                                         .build())
                                 .collect(Collectors.toUnmodifiableList()))
+                        .build())
+                .build();
+    }
+
+    @Override
+    public Response<OnlyIdDTO> addNewCart() {
+        CartEntity cartEntity = new CartEntity();
+        cartRepository.save(cartEntity);
+        return Response.<OnlyIdDTO>newBuilder()
+                .setSuccess(true)
+                .setData(OnlyIdDTO.builder()
+                        .id(cartEntity.getId())
                         .build())
                 .build();
     }

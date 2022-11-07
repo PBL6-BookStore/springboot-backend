@@ -14,4 +14,5 @@ import com.pbl6.bookstore.payload.response.user.UserDTO;
 public interface UserService {
     Response<ListDTO<UserDTO>> getAllUser();
     Response<OnlyIdDTO> addNewUser(UserRequest request);
+    Response<OnlyIdDTO> addNewUserDependOnCart(Long cartId);
 }

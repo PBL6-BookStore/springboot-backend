@@ -10,6 +10,7 @@ import com.pbl6.bookstore.payload.response.cart.ListCartDetailDTO;
  * @since 02/11/2022
  */
 public interface CartService {
+    Response<OnlyIdDTO> addNewCart();
     Response<OnlyIdDTO> addBookToCart(AddBookToCartRequest request);
     Response<ListCartDetailDTO> getCart(Long cartId);
 }
