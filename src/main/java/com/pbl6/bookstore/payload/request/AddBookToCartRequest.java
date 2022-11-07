@@ -9,6 +9,7 @@ import lombok.Data;
 
 @Data
 public class AddBookToCartRequest {
+    private Long cartId;
     private Long bookId;
     private Integer quantity;
 }

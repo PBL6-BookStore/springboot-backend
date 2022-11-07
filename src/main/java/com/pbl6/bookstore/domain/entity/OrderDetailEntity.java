@@ -31,6 +31,9 @@ public class OrderDetailEntity {
     @Column(name = "date_order")
     private Timestamp dateOrder;
 
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", referencedColumnName = "id")
     private BookEntity book;
