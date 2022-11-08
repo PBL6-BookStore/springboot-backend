@@ -1,6 +1,7 @@
 package com.pbl6.bookstore.security;
 
 import com.pbl6.bookstore.common.constant.BookStorePermission;
+import com.pbl6.bookstore.common.constant.Constant;
 import com.pbl6.bookstore.filter.CustomAuthenticationFilter;
 import com.pbl6.bookstore.filter.CustomAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -29,8 +31,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private static String ADMIN = BookStorePermission.Role.ADMIN;
-    private static String USER = BookStorePermission.Role.USER;
+    private static final String ADMIN = BookStorePermission.Role.ADMIN;
+    private static final String USER = BookStorePermission.Role.USER;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -40,16 +42,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-        customAuthenticationFilter.setFilterProcessesUrl("/login");
+        customAuthenticationFilter.setFilterProcessesUrl(Constant.LOGIN_PATH);
 
-        http.csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers("/login", "/token/refresh/**","/swagger-ui/**", "/v3/api-docs/**").permitAll();
-        http.authorizeRequests().antMatchers(HttpMethod.GET, "/categories","/books/**").hasAnyAuthority(ADMIN,USER);
-        http.authorizeRequests().antMatchers(HttpMethod.POST, "/categories","/books","/accounts/**").hasAuthority(ADMIN);
-        http.authorizeRequests().antMatchers(HttpMethod.PUT, "/categories/**", "/books/images/**","/books/**").hasAuthority(ADMIN);
-        http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/categories/**", "/books/**").hasAuthority(ADMIN);
-        http.authorizeRequests().anyRequest().authenticated();
+        http.cors().and().csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .authorizeRequests().antMatchers("/login",
+                        "/test",
+                        "/token/refresh/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**")
+                .permitAll()
+                .antMatchers(HttpMethod.GET,
+                        "/categories",
+                        "/books/**")
+                .hasAnyAuthority(ADMIN,USER)
+                .antMatchers(HttpMethod.POST, "/categories", "/books", "/accounts/**").hasAuthority(ADMIN)
+                .antMatchers(HttpMethod.PUT, "/categories/**", "/books/images/**","/books/**").hasAuthority(ADMIN)
+                .antMatchers(HttpMethod.DELETE, "/categories/**", "/books/**").hasAuthority(ADMIN)
+                .anyRequest().authenticated()
+                .and()
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler()); // Chua handler duoc, chua tim ra ly do
 
         http.addFilter(customAuthenticationFilter);
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -64,5 +76,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler(){
+        return new CustomAccessDeniedHandler();
     }
 }

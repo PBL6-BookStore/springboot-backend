@@ -25,6 +25,4 @@ public class AccountRequest {
     private String email;
     @NotNull
     private String password;
-    @NotNull
-    private Set<String> roles;
 }
