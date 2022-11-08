@@ -21,4 +21,7 @@ public enum ErrorCode {
     NOT_EMPTY,
     DATE_FORMAT_INVALID,
     VALIDATE_FAILURE,
+    ALREADY_EXIST,
+    EMAIL_INVALID,
+    UNAUTHORIZED
 }

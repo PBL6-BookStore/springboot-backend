@@ -7,4 +7,13 @@ package com.pbl6.bookstore.common.constant;
 public class Constant {
     public final static String staticUri = "src/main/resources/static";
     public final static String staticImageUri = "/images/books/";
+
+    // authentication
+    public final static String PREFIX_TOKEN = "Bearer ";
+    public final static String BYTE_CODE = "pbl6bookstore123";
+    public static final String ACCESS_TOKEN = "access_token";
+    public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String LOGIN_PATH = "/login";
+    public static final String REFRESH_TOKEN_PATH = "/token/refresh";
+
 }
