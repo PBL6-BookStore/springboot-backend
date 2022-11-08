@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pbl6.bookstore.common.constant.Constant;
 import com.pbl6.bookstore.payload.response.account.AccountDTO;
 import com.pbl6.bookstore.service.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,10 +49,10 @@ public class RefreshTokenController {
     @GetMapping
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authorizationToken = request.getHeader(AUTHORIZATION);
-        if ( authorizationToken != null && authorizationToken.startsWith("Bearer ")){
+        if ( authorizationToken != null && authorizationToken.startsWith(Constant.PREFIX_TOKEN)){
             try {
-                String refresh_token = authorizationToken.substring("Bearer ".length());
-                Algorithm algorithm = Algorithm.HMAC256("pbl6bookstore123".getBytes());
+                String refresh_token = authorizationToken.substring(Constant.PREFIX_TOKEN.length());
+                Algorithm algorithm = Algorithm.HMAC256(Constant.BYTE_CODE.getBytes());
                 JWTVerifier verifier = JWT.require(algorithm).build();
                 DecodedJWT decodedJWT = verifier.verify(refresh_token);
                 // username in this case is email of account
@@ -64,8 +65,8 @@ public class RefreshTokenController {
                         .withClaim("roles", new ArrayList<>(accountDTO.getRoles()))
                         .sign(algorithm);
                 Map<String, String> tokens = new HashMap<>();
-                tokens.put("access_token", access_token);
-                tokens.put("refresh_token", refresh_token);
+                tokens.put(Constant.ACCESS_TOKEN, access_token);
+                tokens.put(Constant.REFRESH_TOKEN, refresh_token);
 
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 new ObjectMapper().writeValue(response.getOutputStream(), tokens);

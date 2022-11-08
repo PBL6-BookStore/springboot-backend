@@ -26,7 +26,7 @@ public class AccountController {
         return accountService.addNewAccount(request);
     }
 
-    @PostMapping("/add-role")
+    @PostMapping("/roles")
     public ResponseEntity<?> addRoleToAccount(
             @RequestParam(value = "email") String email,
             @RequestParam(value = "role") String role)
