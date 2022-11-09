@@ -1,5 +1,6 @@
 package com.pbl6.bookstore.controller;
 
+import com.pbl6.bookstore.common.constant.BookStorePermission;
 import com.pbl6.bookstore.payload.request.AccountRequest;
 import com.pbl6.bookstore.payload.response.OnlyIdDTO;
 import com.pbl6.bookstore.payload.response.Response;
@@ -7,6 +8,7 @@ import com.pbl6.bookstore.service.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,6 +28,9 @@ public class AccountController {
         return accountService.addNewAccount(request);
     }
 
+    @Secured({
+            BookStorePermission.Role.ADMIN
+    })
     @PostMapping("/roles")
     public ResponseEntity<?> addRoleToAccount(
             @RequestParam(value = "email") String email,

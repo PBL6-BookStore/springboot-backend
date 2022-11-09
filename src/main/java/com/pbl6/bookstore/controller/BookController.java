@@ -1,5 +1,6 @@
 package com.pbl6.bookstore.controller;
 
+import com.pbl6.bookstore.common.constant.BookStorePermission;
 import com.pbl6.bookstore.payload.request.BookRequest;
 import com.pbl6.bookstore.payload.request.ListBookRequest;
 import com.pbl6.bookstore.payload.response.OnlyIdDTO;
@@ -14,10 +15,10 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
@@ -29,7 +30,6 @@ import java.io.IOException;
 @Tag(name = "Book", description = "Book APIs")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/books")
 public class BookController {
     private final BookService bookService;
 
@@ -47,41 +47,52 @@ public class BookController {
             @Parameter(in = ParameterIn.QUERY, name = "allInOne", description = "Fetch all book in database. Default false", example = "true",
             schema = @Schema(allowableValues = {"true", "false"}))
     })
-    @GetMapping
+    @GetMapping("/anonymous/books")
     public Response<PageDTO<BookDTO>> listBook(@ModelAttribute ListBookRequest request){
         var listBook = bookService.listBook(request);
         return bookService.listBook(request);
     }
 
     @Operation(summary = "Find Book by id", description = "Find book by id")
-    @GetMapping("/{bookId}")
+    @GetMapping("/anonymous/books/{bookId}")
     public Response<BookDTO> getBookById(@PathVariable("bookId") Long bookId){
         var bookRes = bookService.findBookById(bookId);
         return bookService.findBookById(bookId);
     }
 
+    @Secured({
+            BookStorePermission.Role.ADMIN
+    })
     @Operation(summary = "Add new Book", description = "Add new Book")
     @PostMapping
     public Response<OnlyIdDTO> addBook(@RequestBody BookRequest request){
         return bookService.addNewBook(request);
     }
 
+    @Secured({
+            BookStorePermission.Role.ADMIN
+    })
     @Operation(summary = "Update image for book")
     @Parameter(in = ParameterIn.QUERY, name = "image", description = "upload image for book", example = "book.png")
-    @PutMapping("/images/{bookId}")
+    @PutMapping("/books/images/{bookId}")
     public Response<OnlyIdDTO> updateImage(@PathVariable("bookId") Long bookId, @RequestParam(value = "image", required = true) @NotNull MultipartFile image) throws IOException {
         return bookService.updateImage(bookId, image);
     }
 
+    @Secured({
+            BookStorePermission.Role.ADMIN
+    })
     @Operation(summary = "Update book", description = "Update book with id")
-    @PutMapping("/{bookId}")
+    @PutMapping("/books/{bookId}")
     public Response<OnlyIdDTO> updateBook(@PathVariable("bookId") Long bookId, @RequestBody BookRequest bookRequest){
         return bookService.updateBook(bookId, bookRequest);
     }
 
-
+    @Secured({
+            BookStorePermission.Role.ADMIN
+    })
     @Operation(summary = "Delete book", description = "Delete book with id")
-    @DeleteMapping("/{bookId}")
+    @DeleteMapping("/books/{bookId}")
     public Response<OnlyIdDTO> deleteBook(@PathVariable("bookId") Long bookId){
         return bookService.deleteBook(bookId);
     }

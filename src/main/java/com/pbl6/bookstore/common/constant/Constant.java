@@ -1,5 +1,7 @@
 package com.pbl6.bookstore.common.constant;
 
+import java.util.List;
+
 /**
  * @author lkadai0801
  * @since 30/10/2022
@@ -15,5 +17,9 @@ public class Constant {
     public static final String REFRESH_TOKEN = "refresh_token";
     public static final String LOGIN_PATH = "/login";
     public static final String REFRESH_TOKEN_PATH = "/token/refresh";
+
+    public static final String REGISTER_PATH = "/accounts";
+
+    public static final List<String> UN_AUTHENTICATION_PATH = List.of(LOGIN_PATH, REFRESH_TOKEN_PATH, REGISTER_PATH);
 
 }
