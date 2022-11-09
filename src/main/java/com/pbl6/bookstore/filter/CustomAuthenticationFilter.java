@@ -4,15 +4,20 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pbl6.bookstore.common.constant.Constant;
+import com.pbl6.bookstore.common.enums.ErrorCode;
+import com.pbl6.bookstore.payload.response.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
@@ -42,16 +47,30 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     @Value("${app.security.secret.key}")
     private String secretKey;
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        Response<Object> responseObj = Response.<Object>newBuilder()
+                .setSuccess(false)
+                .setMessage(failed.getMessage())
+                .setErrorCode(ErrorCode.AUTHENTICATION_FAILURE)
+                .setException(failed.getClass().getSimpleName())
+                .build();
+        response.setContentType(APPLICATION_JSON_VALUE);
+        new ObjectMapper().writeValue(response.getOutputStream(), responseObj);
+    }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        // username in this case is email of user
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        log.info("Username is {}", username);
-        log.info("Password is {}", password);
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
-        return authenticationManager.authenticate(authToken);
+        if (!request.getMethod().equals("POST")) {
+            throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
+        } else {
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
+            log.info("email is {}", email);
+            log.info("Password is {}", password);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password);
+            return authenticationManager.authenticate(authToken);
+        }
     }
 
     @Override

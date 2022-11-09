@@ -24,7 +24,7 @@ public class CartEntity {
     private Long id;
 
     @OneToOne(mappedBy = "cart", fetch = FetchType.LAZY)
-    private UserEntity user;
+    private AccountEntity account;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart")
     private List<CartDetailEntity> cartDetails;

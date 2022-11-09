@@ -3,9 +3,11 @@ package com.pbl6.bookstore.service.impl;
 import com.pbl6.bookstore.common.constant.BookStorePermission;
 import com.pbl6.bookstore.common.enums.ErrorCode;
 import com.pbl6.bookstore.domain.entity.AccountEntity;
+import com.pbl6.bookstore.domain.entity.CartEntity;
 import com.pbl6.bookstore.domain.entity.RoleEntity;
 import com.pbl6.bookstore.domain.entity.UserEntity;
 import com.pbl6.bookstore.domain.repository.jpa.AccountRepository;
+import com.pbl6.bookstore.domain.repository.jpa.CartRepository;
 import com.pbl6.bookstore.domain.repository.jpa.RoleRepository;
 import com.pbl6.bookstore.domain.repository.jpa.UserRepository;
 import com.pbl6.bookstore.exception.ObjectNotFoundException;
@@ -46,6 +48,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class AccountServiceImpl implements AccountService, UserDetailsService {
     private static final String USER = BookStorePermission.Role.USER;
+
+    private final CartRepository cartRepository;
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
@@ -64,11 +68,9 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public Response<OnlyIdDTO> addNewAccount(AccountRequest request) {
-        log.info("Saving new account {} to the database.", request.getEmail().substring(0, request.getEmail().indexOf("@")));
-        AccountEntity accountEntity = new AccountEntity();
         // validate email if exist
-
         if (!EMAIL_P.matcher(request.getEmail()).matches()){
             return Response.<OnlyIdDTO>newBuilder()
                     .setSuccess(false)
@@ -87,20 +89,22 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
                     .setMessage("Bad request")
                     .build();
         }
+        log.info("Saving new account {} to the database.", request.getEmail().substring(0, request.getEmail().indexOf("@")));
+        AccountEntity accountEntity = new AccountEntity();
+
 
         accountEntity.setEmail(request.getEmail());
         accountEntity.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Long cartId = cartService.addNewCart().getData().getId();
-        Long userId = userService.addNewUserDependOnCart(cartId).getData().getId();
-
-        UserEntity user = userRepository.findById(userId).orElseThrow(() ->
-                new ObjectNotFoundException("userId", userId));
-
-        accountEntity.setUser(user);
+        CartEntity cart = new CartEntity();
+        UserEntity user = new UserEntity();
+        user.setFirstName("");
+        user.setLastName("");
 
         var roleUser = roleRepository.findByRole(USER).orElseThrow();
         accountEntity.setRoles(Set.of(roleUser));
+        accountEntity.setUser(user);
+        accountEntity.setCart(cart);
         accountRepository.save(accountEntity);
         return Response.<OnlyIdDTO>newBuilder()
                 .setSuccess(true)

@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = new UserEntity();
         CartEntity cart = cartRepository.findById(cartId).orElseThrow(() ->
                 new ObjectNotFoundException("Can't find cart with id {} in database.", cartId));
-        user.setCart(cart);
+//        user.setCart(cart);
         user.setFirstName("");
         user.setLastName("");
         userRepository.save(user);
