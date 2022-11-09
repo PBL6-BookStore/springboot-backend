@@ -3,6 +3,7 @@ package com.pbl6.bookstore.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pbl6.bookstore.common.constant.Constant;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static java.util.Arrays.stream;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -42,9 +44,16 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Value("${app.security.secret.key}")
     private String secretKey;
 
+    private static final Pattern URI_ANONYMOUS_PATTERN = Pattern.compile("^/anonymous/.*");
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getServletPath().equals(Constant.LOGIN_PATH) || request.getServletPath().equals(Constant.REFRESH_TOKEN_PATH)){
+        if (
+                request.getServletPath().equals(Constant.LOGIN_PATH) ||
+                request.getServletPath().equals(Constant.REFRESH_TOKEN_PATH) ||
+                URI_ANONYMOUS_PATTERN.matcher(request.getServletPath()).matches()
+        ){
+
             filterChain.doFilter(request, response);
         } else {
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -66,19 +75,20 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                     filterChain.doFilter(request, response);
-                } catch (Exception exception) {
-                    log.info("Error logging in: {} ", exception.getMessage());
-                    response.setHeader("error", exception.getMessage());
-                    response.setStatus(FORBIDDEN.value());
+                } catch (TokenExpiredException e){
+                    // Handler expired token exception
+                    log.warn("Token expired");
                     var responseObj = Response.newBuilder()
-                                    .setSuccess(false)
-                                    .setErrorCode(ErrorCode.UNAUTHORIZED)
-                                    .setMessage("Invalid token " + request.getHeader(HttpHeaders.AUTHORIZATION))
-                                    .setException(exception.getClass().getSimpleName())
-                                    .build();
+                            .setSuccess(false)
+                            .setMessage("Token expired")
+                            .setErrorCode(ErrorCode.TOKEN_EXPIRED)
+                            .setException(e.getClass().getSimpleName())
+                            .build();
+                    response.setStatus(FORBIDDEN.value());
                     response.setContentType(APPLICATION_JSON_VALUE);
                     new ObjectMapper().writeValue(response.getOutputStream(), responseObj);
                 }
+
             } else {
                 filterChain.doFilter(request, response);
             }

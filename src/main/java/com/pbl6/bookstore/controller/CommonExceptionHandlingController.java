@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -143,6 +144,19 @@ public class CommonExceptionHandlingController extends ResponseEntityExceptionHa
                 .build();
         return ResponseEntity.status(status).body(error);
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException e){
+        log.warn("AccessDeniedException  was risen and caught");
+        var responseObj = Response.newBuilder()
+                .setSuccess(false)
+                .setMessage("Bad request")
+                .setErrorCode(ErrorCode.ACCESS_DENIED)
+                .setException(e.getClass().getSimpleName())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseObj);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     protected ResponseEntity<Object> handleRuntimeException(RuntimeException exception) {
         log.warn("RuntimeException was risen and caught.");

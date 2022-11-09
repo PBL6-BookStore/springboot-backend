@@ -54,7 +54,7 @@ public class AccountRepositoryTest {
         UserEntity user = new UserEntity();
         user.setFirstName("");
         user.setLastName("");
-        user.setCart(cart);
+//        user.setCart(cart);
         userRepository.save(user);
 
         accountEntity.setUser(user);

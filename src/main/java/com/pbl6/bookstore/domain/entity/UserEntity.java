@@ -39,10 +39,6 @@ public class UserEntity {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private AccountEntity account;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id", referencedColumnName = "id")
-    private CartEntity cart;
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private List<ChatEntity> chats;
 
