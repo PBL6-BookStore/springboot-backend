@@ -48,12 +48,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (
-                request.getServletPath().equals(Constant.LOGIN_PATH) ||
-                request.getServletPath().equals(Constant.REFRESH_TOKEN_PATH) ||
-                URI_ANONYMOUS_PATTERN.matcher(request.getServletPath()).matches()
-        ){
-
+        if (Constant.UN_AUTHENTICATION_PATH.contains(request.getServletPath()) ||
+                URI_ANONYMOUS_PATTERN.matcher(request.getServletPath()).matches()){
             filterChain.doFilter(request, response);
         } else {
             String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);

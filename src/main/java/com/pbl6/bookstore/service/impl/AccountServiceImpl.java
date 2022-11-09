@@ -100,17 +100,9 @@ public class AccountServiceImpl implements AccountService, UserDetailsService {
         UserEntity user = new UserEntity();
         user.setFirstName("");
         user.setLastName("");
-//        var userSaved = userRepository.save(user);
-//        var cartSaved = cartRepository.save(cart);
-
-//        var userSaved = userRepository.save(user);
-
-
 
         var roleUser = roleRepository.findByRole(USER).orElseThrow();
         accountEntity.setRoles(Set.of(roleUser));
-        user.setAccount(accountEntity);
-        cart.setAccount(accountEntity);
         accountEntity.setUser(user);
         accountEntity.setCart(cart);
         accountRepository.save(accountEntity);
