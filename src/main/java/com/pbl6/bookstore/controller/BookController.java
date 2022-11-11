@@ -64,7 +64,7 @@ public class BookController {
             BookStorePermission.Role.ADMIN
     })
     @Operation(summary = "Add new Book", description = "Add new Book")
-    @PostMapping
+    @PostMapping("/books")
     public Response<OnlyIdDTO> addBook(@RequestBody BookRequest request){
         return bookService.addNewBook(request);
     }
