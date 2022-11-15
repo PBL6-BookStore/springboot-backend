@@ -231,6 +231,10 @@ public class BookServiceImpl implements BookService {
         book.setPrice(request.getPrice());
         book.setWeight(request.getWeight());
         book.setPublisher(request.getPublisher());
+        var category = bookCategoryRepository.findById(request.getCategoryId()).orElseThrow(
+                () -> new ObjectNotFoundException("categoryId", request.getCategoryId())
+        );
+        book.setBookCategory(category);
         return book;
     }
 
