@@ -36,6 +36,10 @@ public class DiscountEntity {
     @Size(min = 4, max = 20)
     private String code;
 
+//    % discount
+    @Column(name = "value")
+    private Integer value;
+
     @Column(name = "start_date")
     private Timestamp startDate;
 

@@ -43,6 +43,7 @@ public class BookEntity {
 
     private Integer pages;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String author;

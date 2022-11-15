@@ -5,19 +5,21 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pbl6.bookstore.common.constant.Constant;
 import com.pbl6.bookstore.common.enums.ErrorCode;
+import com.pbl6.bookstore.domain.entity.AccountEntity;
+import com.pbl6.bookstore.domain.entity.RoleEntity;
+import com.pbl6.bookstore.domain.repository.jpa.AccountRepository;
+import com.pbl6.bookstore.exception.ObjectNotFoundException;
 import com.pbl6.bookstore.payload.response.Response;
+import com.pbl6.bookstore.payload.response.account.AccountAuthenticationDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
@@ -42,6 +44,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     private static final long EXPIRE_DURATION_ACCESS_TOKEN = 10 * 60 * 1000; // 10mins
     private static final long EXPIRE_DURATION_REFRESH_TOKEN = 10 * 60 * 60 * 1000; // 10hrs
 
+    private final AccountRepository accountRepository;
 
     private final AuthenticationManager authenticationManager;
 
@@ -75,22 +78,34 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        User user = (User) authentication.getPrincipal();
+        AccountEntity user = (AccountEntity) authentication.getPrincipal();
+        var account = accountRepository.findByEmail(user.getUsername()).orElseThrow(() ->
+                new ObjectNotFoundException("email", user.getUsername()));
         Algorithm algorithm = Algorithm.HMAC256(Constant.BYTE_CODE.getBytes());
         String access_token = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRE_DURATION_ACCESS_TOKEN))
                 .withIssuer(request.getRequestURL().toString())
                 .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .withClaim("account_id", account.getId())
+                .withClaim("user_id", account.getUser().getId())
+                .withClaim("cart_id", account.getCart().getId())
                 .sign(algorithm);
         String refresh_token = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRE_DURATION_REFRESH_TOKEN))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
-        Map<String, String> tokens = new HashMap<>();
+        Map<String, Object> tokens = new HashMap<>();
         tokens.put(Constant.ACCESS_TOKEN, access_token);
         tokens.put(Constant.REFRESH_TOKEN, refresh_token);
+        AccountAuthenticationDTO authenticationDTO = AccountAuthenticationDTO.newBuilder()
+                        .setEmail(account.getEmail())
+                        .setRoles(account.getRoles().stream().map(RoleEntity::getRole).collect(Collectors.toSet()))
+                        .setCartId(account.getCart().getId())
+                        .setUserId(account.getUser().getId())
+                        .build();
+        tokens.put("account", authenticationDTO);
 
         response.setContentType(APPLICATION_JSON_VALUE);
 
