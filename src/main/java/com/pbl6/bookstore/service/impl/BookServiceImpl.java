@@ -19,6 +19,7 @@ import com.pbl6.bookstore.service.BookService;
 import static com.pbl6.bookstore.util.RequestUtils.*;
 
 import com.pbl6.bookstore.service.converter.BookMapper;
+import com.pbl6.bookstore.util.DateTimeUtils;
 import com.pbl6.bookstore.util.FileUploadUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -52,9 +53,6 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
 
     private final BookCategoryRepository bookCategoryRepository;
-
-    private final String pattern = "dd-MM-yyyy";
-    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
     @Override
     public Response<PageDTO<BookDTO>> listBook(ListBookRequest request) {
@@ -100,7 +98,7 @@ public class BookServiceImpl implements BookService {
 
         if (StringUtils.hasText(request.getPublicationDate())){
             try {
-                date = new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+                date = DateTimeUtils.string2Timestamp(request.getPublicationDate());
             } catch (ParseException e){
                 log.error("date format");
             }
@@ -162,7 +160,7 @@ public class BookServiceImpl implements BookService {
 
         if (StringUtils.hasText(request.getPublicationDate())){
             try {
-                date = new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+                date = DateTimeUtils.string2Timestamp(request.getPublicationDate());
             } catch (ParseException e){
                 log.error("date format");
             }
@@ -213,7 +211,7 @@ public class BookServiceImpl implements BookService {
 
         if (StringUtils.hasText(request.getPublicationDate())){
             try {
-                new Timestamp(simpleDateFormat.parse(request.getPublicationDate()).getTime());
+                DateTimeUtils.string2Timestamp(request.getPublicationDate());
             } catch (ParseException e) {
                 log.warn("Date format invalid {}", request.getPublicationDate());
                 errors.add(ErrorDTO.of("publicationDate", ErrorCode.DATE_FORMAT_INVALID));

@@ -6,15 +6,20 @@ import com.pbl6.bookstore.domain.repository.jpa.CartDetailRepository;
 import com.pbl6.bookstore.domain.repository.jpa.CartRepository;
 import com.pbl6.bookstore.exception.ObjectNotFoundException;
 import com.pbl6.bookstore.payload.request.AddBookToCartRequest;
+import com.pbl6.bookstore.payload.response.NoContentResponse;
 import com.pbl6.bookstore.payload.response.OnlyIdDTO;
 import com.pbl6.bookstore.payload.response.Response;
 import com.pbl6.bookstore.payload.response.book.BookDTO;
 import com.pbl6.bookstore.payload.response.cart.ListCartDetailDTO;
 import com.pbl6.bookstore.domain.entity.CartEntity;
 import com.pbl6.bookstore.service.CartService;
+import com.pbl6.bookstore.util.DateTimeUtils;
+import com.pbl6.bookstore.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.List;
 import java.util.stream.Collectors;
 import static com.pbl6.bookstore.util.RequestUtils.*;
 
@@ -30,7 +35,9 @@ public class CartServiceImpl implements CartService {
     private final CartDetailRepository cartDetailRepository;
     private final CartRepository cartRepository;
     private final BookRepository bookRepository;
+    private final SecurityUtils securityUtils;
     @Override
+    @Transactional
     public Response<OnlyIdDTO> addBookToCart(AddBookToCartRequest request) {
         var cartDetails = cartDetailRepository.findAllByCartId(request.getCartId());
         var bookIds = cartDetails.stream().map(c -> c.getBook().getId()).collect(Collectors.toUnmodifiableList());
@@ -72,7 +79,7 @@ public class CartServiceImpl implements CartService {
 
         // Tong gia tri don hang
         var total = cartDetails.stream()
-                .reduce(0L, (a, b) -> a + b.getQuantity(), Long::sum);
+                .reduce(0L, (a, b) -> a + b.getBook().getPrice() * b.getQuantity(), Long::sum);
 
         return Response.<ListCartDetailDTO>newBuilder()
                 .setSuccess(true)
@@ -89,12 +96,28 @@ public class CartServiceImpl implements CartService {
                                                 .setImage(blankIfNull(c.getBook().getImage()))
                                                 .setPublisher(blankIfNull(c.getBook().getPublisher()))
                                                 .setTitle(c.getBook().getTitle())
+                                                .setDescription(blankIfNull(c.getBook().getDescription()))
+                                                .setPublicationDate(DateTimeUtils.timestamp2String(c.getBook().getPublicationDate()))
+                                                .setEdition(defaultIfNull(c.getBook().getEdition(), -1))
                                                 .build())
                                         .setQuantity(c.getQuantity())
                                         .setId(c.getId())
                                         .build())
                                 .collect(Collectors.toUnmodifiableList()))
                         .build())
+                .build();
+    }
+
+    @Override
+    public Response<NoContentResponse> deleteCartDetail(List<Long> cartDetailIds) {
+        var principal = securityUtils.getPrincipal();
+        var listCartDetailDel = cartDetailRepository.findAllById(cartDetailIds);
+        listCartDetailDel = listCartDetailDel.stream()
+                .filter(c ->  c.getCart().getId().equals(principal.getCartId()))
+                .collect(Collectors.toUnmodifiableList());
+        cartDetailRepository.deleteAll(listCartDetailDel);
+        return Response.<NoContentResponse>newBuilder()
+                .setData(NoContentResponse.builder().build())
                 .build();
     }
 

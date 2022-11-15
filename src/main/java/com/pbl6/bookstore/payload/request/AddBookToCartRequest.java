@@ -1,5 +1,6 @@
 package com.pbl6.bookstore.payload.request;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Data;
  */
 
 @Data
+@Builder(builderMethodName = "newBuilder", setterPrefix = "set")
 public class AddBookToCartRequest {
     private Long cartId;
     private Long bookId;

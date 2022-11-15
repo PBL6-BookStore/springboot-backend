@@ -2,8 +2,11 @@ package com.pbl6.bookstore.security;
 
 import com.pbl6.bookstore.common.constant.BookStorePermission;
 import com.pbl6.bookstore.common.constant.Constant;
+import com.pbl6.bookstore.domain.repository.jpa.AccountRepository;
 import com.pbl6.bookstore.filter.CustomAuthenticationFilter;
 import com.pbl6.bookstore.filter.CustomAuthorizationFilter;
+import com.pbl6.bookstore.service.AccountService;
+import com.pbl6.bookstore.service.impl.AccountServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,8 +39,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private final UserDetailsService userDetailsService;
+    private final AccountServiceImpl userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final AccountRepository accountRepository;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -46,7 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(accountRepository, authenticationManagerBean());
         customAuthenticationFilter.setFilterProcessesUrl(Constant.LOGIN_PATH);
 
         http.cors().and().csrf().disable()
@@ -95,7 +100,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE"));
-        configuration.setAllowCredentials(true);
+//        configuration.setAllowCredentials(false);
         configuration.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

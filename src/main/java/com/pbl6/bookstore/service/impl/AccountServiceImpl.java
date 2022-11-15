@@ -7,9 +7,7 @@ import com.pbl6.bookstore.domain.entity.CartEntity;
 import com.pbl6.bookstore.domain.entity.RoleEntity;
 import com.pbl6.bookstore.domain.entity.UserEntity;
 import com.pbl6.bookstore.domain.repository.jpa.AccountRepository;
-import com.pbl6.bookstore.domain.repository.jpa.CartRepository;
 import com.pbl6.bookstore.domain.repository.jpa.RoleRepository;
-import com.pbl6.bookstore.domain.repository.jpa.UserRepository;
 import com.pbl6.bookstore.exception.ObjectNotFoundException;
 import com.pbl6.bookstore.payload.request.AccountRequest;
 import com.pbl6.bookstore.payload.response.ErrorDTO;
@@ -17,8 +15,6 @@ import com.pbl6.bookstore.payload.response.OnlyIdDTO;
 import com.pbl6.bookstore.payload.response.Response;
 import com.pbl6.bookstore.payload.response.account.AccountDTO;
 import com.pbl6.bookstore.service.AccountService;
-import com.pbl6.bookstore.service.CartService;
-import com.pbl6.bookstore.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -48,23 +44,15 @@ import java.util.stream.Collectors;
 @Log4j2
 public class AccountServiceImpl implements AccountService, UserDetailsService {
     private static final String USER = BookStorePermission.Role.USER;
-
-    private final CartRepository cartRepository;
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CartService cartService;
-    private final UserService userService;
     private static final Pattern EMAIL_P = Pattern.compile("^[_A-Za-z0-9-']+(\\.['_A-Za-z0-9-]+)*@[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        AccountEntity accountEntity = accountRepository.findByEmail(email).orElseThrow(() ->
+        return accountRepository.findByEmail(email).orElseThrow(() ->
                 new ObjectNotFoundException("email", email));
-        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        accountEntity.getRoles().forEach(roleEntity -> authorities.add(new SimpleGrantedAuthority(roleEntity.getRole())));
-        return new User(email, accountEntity.getPassword(), authorities);
     }
 
     @Override

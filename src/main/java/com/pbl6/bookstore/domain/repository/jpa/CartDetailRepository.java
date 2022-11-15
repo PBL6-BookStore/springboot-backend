@@ -21,4 +21,10 @@ public interface CartDetailRepository extends JpaRepository<CartDetailEntity, Lo
             "LEFT JOIN FETCH cd.book " +
             "WHERE cd.cart.id = :cartId")
     List<CartDetailEntity> findAllByCartIdFetchBook(@Param("cartId") Long cartId);
+
+    @Query("SELECT cd FROM CartDetailEntity cd " +
+            "LEFT JOIN FETCH cd.book " +
+            "WHERE cd.id IN (:cartDetailIds) " +
+            "AND cd.cart.id = :cartId")
+    List<CartDetailEntity> findAllByCartDetailIdsFetchBook(@Param("cartDetailIds") List<Long> cartDetailIds, @Param("cartId") Long cartId);
 }
