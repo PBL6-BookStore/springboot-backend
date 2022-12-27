@@ -4,6 +4,7 @@ import com.pbl6.bookstore.payload.response.Response;
 import com.pbl6.bookstore.payload.response.chatbot.ChatBotAIDTO;
 import com.pbl6.bookstore.payload.response.chatbot.ChatBotDTO;
 import com.pbl6.bookstore.service.ChatBotService;
+import com.pbl6.bookstore.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,12 @@ public class ChatBotServiceImpl implements ChatBotService {
 
     private final RestTemplate restTemplate;
 
+    private final SecurityUtils securityUtils;
+
     @Override
     public Response<ChatBotDTO> chatBot(String request) {
-        ChatBotAIDTO response = restTemplate.getForObject(chatBotAPI + "?message=" + request, ChatBotAIDTO.class);
+        var principal = securityUtils.getPrincipal();
+        ChatBotAIDTO response = restTemplate.getForObject(chatBotAPI + "?message=" + request + "&userId=" + principal.getUserId(), ChatBotAIDTO.class);
         assert response != null;
         if (response.getSuccess()){
             return Response.<ChatBotDTO>newBuilder()
