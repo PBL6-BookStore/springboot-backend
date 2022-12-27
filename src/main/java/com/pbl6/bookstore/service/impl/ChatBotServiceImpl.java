@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author lkadai0801
  * @since 25/12/2022
@@ -28,9 +25,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 
     @Override
     public Response<ChatBotDTO> chatBot(String request) {
-        Map<String, String> params = new HashMap<>();
-        params.put("message", request);
-        ChatBotAIDTO response = restTemplate.getForObject(chatBotAPI, ChatBotAIDTO.class, params);
+        ChatBotAIDTO response = restTemplate.getForObject(chatBotAPI + "?message=" + request, ChatBotAIDTO.class);
         assert response != null;
         if (response.getSuccess()){
             return Response.<ChatBotDTO>newBuilder()
