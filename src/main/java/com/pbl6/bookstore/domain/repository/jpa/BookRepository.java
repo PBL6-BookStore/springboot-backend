@@ -25,4 +25,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long> {
     @Modifying
     @Query("UPDATE BookEntity SET image = :path WHERE id = :bookId")
     void updateImage(@Param("bookId") Long bookId, @Param("path") String path);
+
+    @Query("SELECT b FROM BookEntity b WHERE b.title = :title")
+    Optional<BookEntity> findBookByTitle(@Param("title") String title);
 }
